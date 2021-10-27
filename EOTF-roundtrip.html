@@ -1,0 +1,22 @@
+<title>HLG EOTF round-trip tester</title>
+<meta charset="utf-8"/>
+<h1>Look at the console</h1>
+<script src="conversions.js"></script>
+<script src="HLG.js"></script>
+<script>
+    let worst = 0;
+    for (let i=0; i <= 100; i++) {
+        let j = i /100;
+        let E = HLG_OETF(j);
+        let E2 = HLG_inv_OETF(E);
+        let error = E2-j;
+        console.log(j, E, E2, error);
+        if (error > worst) {
+            worst = error;
+        }
+    }
+    console.log (worst);
+
+    console.log(HLG_inv_OETF(0.75));
+
+</script>

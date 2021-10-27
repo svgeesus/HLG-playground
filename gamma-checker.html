@@ -1,0 +1,17 @@
+<title>HLG gamma and black level lift checker</title>
+<meta charset="utf-8"/>
+<h1>Look at the console</h1>
+<p>Should be gamma 1.2 for 1000 cd/m2</p>
+<script src="conversions.js"></script>
+<script src="HLG.js"></script>
+<script>
+    const VESA_white = [400, 500, 600, 1000, 1400];
+    const VESA_black = [0.4, 0.1, 0.1, 0.05, 0.02];
+
+    for (let i=0; i<=4; i++) {
+        let refGamma = extendedGamma(VESA_white[i]);
+        let beta  = blackLevelLift(refGamma, VESA_white[i], VESA_black[i]);
+        console.log (VESA_white[i], VESA_black[i], refGamma, beta);
+    }
+
+</script>
