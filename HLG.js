@@ -68,21 +68,39 @@ function extendedGamma (Lw) {
 // using the "best fit" model
 // because the "alternative model" is underspecified :(
 // ITU-R BT.2390-8 p.31 section
+// 6.2 System gamma and the opto-optical transfer function (OOTF)
 function brightGamma (refGamma, Lamb) {
     let adjustment = -0.076 * Math.log10 (Lamb / 5);
     return refGamma - adjustment;
 }
 
-// given Edash, an HLG-encoded rec2100 RGB component value in nominal range [0-1]
+// given an array of linear-light rec2100 RGB values
+// and an overall system gamma
+// apply that gamma to just the luminance
+// and return an array of adjusted linear-light RGB values
+// ITU-R BT.2390-8 p.29 section
+// 6.2 System gamma and the opto-optical transfer function (OOTF)
+function HLG_OOTF(RGB, gamma) {
+    let [R, G, B] = RGB;
+    let Y = 0.2627 * R + 0.6780 * G + 0.0593 * B;
+}
+
+// given RGB, an array of HLG-encoded rec2100 RGB values in nominal range [0-1]
 // and the black level lift needed for a given display,
 // and the OOTF gamma needed for a given display peak luminance and ambient lightness,
-// return a linear-light rec2100 RGB component value in clamped range [0,1]
+// return an array of  linear-light rec2100 RGB values in clamped range [0,1]
 // ITU-R BT.2390-8 section
 // 6.3 The hybrid log-gamma electro-optical transfer function (EOTF)
-function HLG_EOTF (Edash, beta, gamma) {
-    let value = (1 - beta) * Edash + beta;
-    let value2 = HLG_inv_OETF(Math.max(0, value));
-    return HLG_OOTF(value2, gamma);
+function HLG_EOTF (RGB, beta, gamma) {
+
+    // first calculate the linear-light RGB values assuming a system gamma of 1.0
+    let RGB2 = RGB.map(function (Edash) {
+        let value = (1 - beta) * Edash + beta;
+        return HLG_inv_OETF(Math.max(0, value));
+    });
+
+    // Now correct for system gamma
+    return HLG_OOTF(RGB2, gamma);
 }
 
 function HLG_inv_EOTF () {
@@ -108,7 +126,6 @@ function convertExtendedSRGBtoREC2100HLG(sRGB) {
     let scaled2100 = lin2100.map(c => c * SrgbtoHlgScaler);
 
     // Convert to HLG Non-linear Signal (straightforward as systemGamma = 1.0)
-    // why isn't this the HLG OETF?
     return HLG_inv_EOTF(scaled2100);
 
     // (r1, g1, b1) = tf.srgb_eotf(R, G, B)  # convert to linear RGB Normalised Display Light (values may be outside range 0 - 1)
